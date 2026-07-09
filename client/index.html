@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>WhatsCord</title>
+    <style>
+      body {
+        font-family: Arial;
+        display: flex;
+        flex-direction: column;
+        height: 95vh;
+      }
+      #chat {
+        flex: 1;
+        border: 1px solid #ccc;
+        overflow-y: auto;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .input-group {
+        display: flex;
+      }
+      #mensagem {
+        flex: 1;
+        padding: 10px;
+      }
+      button {
+        padding: 10px 20px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chat"></div>
+    <div class="input-group">
+      <input
+        type="text"
+        id="mensagem"
+        placeholder="Ex: LOGIN;seu_nome ou MESSAGE;destino;texto"
+      />
+      <button id="btnEnviar">Enviar</button>
+    </div>
+    <script src="./renderer.js"></script>
+  </body>
+</html>
