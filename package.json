@@ -5,10 +5,13 @@
   "main": "index.js",
   "scripts": {
     "start:server": "node server/server.js",
-    "start:client": "node client/client.js"
+    "start:client": "electron client/main.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^43.1.0"
+  }
 }
