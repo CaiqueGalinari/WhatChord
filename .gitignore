@@ -141,3 +141,13 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Impede que os pacotes pesados do Node subam (cada dev roda npm install na sua máquina)
+node_modules/
+
+# Impede o rastreio de logs de erro do terminal
+npm-debug.log*
+yarn-error.log*
+
+# Impede o vazamento de configurações da máquina ou dados sensíveis (mesmo que não usem agora, é boa prática)
+.env
