@@ -1,7 +1,7 @@
 {
   "name": "whatchord",
   "version": "1.0.0",
-  "description": "",
+  "description": "Um software de troca de mensagens instantâneas para a matéria de redes",
   "main": "index.js",
   "scripts": {
     "start:server": "node server/server.js",
@@ -13,5 +13,13 @@
   "type": "commonjs",
   "devDependencies": {
     "electron": "^43.1.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CaiqueGalinari/WhatChord.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CaiqueGalinari/WhatChord/issues"
+  },
+  "homepage": "https://github.com/CaiqueGalinari/WhatChord#readme"
 }
