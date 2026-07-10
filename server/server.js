@@ -1,4 +1,9 @@
 const net = require("net");
+const {
+  COMMANDS,
+  parseMessage,
+  formatMessage,
+} = require("../shared/protocol");
 
 const PORT = 3000;
 
@@ -9,83 +14,102 @@ const servidor = net.createServer((socket) => {
   console.log("Novo cliente conectado!");
 
   // Recebe mensagens do cliente
-socket.on("data", (data) => {
-  const mensagem = data.toString().trim();
-  console.log("Recebido:", mensagem);
+  socket.on("data", (data) => {
+    const { command, args } = parseMessage(data.toString());
 
-  const partes = mensagem.split(";");
-  const comando = partes[0];
+    console.log("Recebido:", command, args);
 
-  switch (comando) {
+    switch (command) {
+      case COMMANDS.LOGIN: {
+        const nickname = args[0];
 
-    case "LOGIN": {
-      const nickname = partes[1];
+        if (!nickname) {
+          socket.write(
+            formatMessage(COMMANDS.ERROR, "Nickname inválido") + "\n"
+          );
+          return;
+        }
 
-      if (!nickname) {
-        socket.write("ERRO;Nickname inválido.\n");
-        return;
+        if (clientes.has(nickname)) {
+          socket.write(
+            formatMessage(COMMANDS.ERROR, "Nickname já está em uso") + "\n"
+          );
+          return;
+        }
+
+        clientes.set(nickname, socket);
+        socket.nickname = nickname;
+
+        console.log(`${nickname} entrou no chat.`);
+
+        socket.write(
+          formatMessage(COMMANDS.LOGIN_OK, `Bem-vindo ${nickname}`) + "\n"
+        );
+        break;
       }
 
-      if (clientes.has(nickname)) {
-        socket.write("ERRO;Nickname já está em uso.\n");
-        return;
+      case COMMANDS.LIST: {
+        const usuarios = [...clientes.keys()];
+
+        socket.write(
+          formatMessage(COMMANDS.LIST, ...usuarios) + "\n"
+        );
+        break;
       }
 
-      clientes.set(nickname, socket);
-      socket.nickname = nickname;
+      case COMMANDS.MESSAGE: {
+        const destino = args[0];
+        const texto = args.slice(1).join(";");
 
-      console.log(`${nickname} entrou no chat.`);
+        if (!socket.nickname) {
+          socket.write(
+            formatMessage(COMMANDS.ERROR, "Faça LOGIN primeiro") + "\n"
+          );
+          return;
+        }
 
-      socket.write(`LOGIN_OK;Bem-vindo ${nickname}\n`);
-      break;
+        const socketDestino = clientes.get(destino);
+
+        if (!socketDestino) {
+          socket.write(
+            formatMessage(COMMANDS.ERROR, "Usuário não encontrado") + "\n"
+          );
+          return;
+        }
+
+        socketDestino.write(
+          formatMessage(COMMANDS.MESSAGE, socket.nickname, texto) + "\n"
+        );
+
+        socket.write(
+          formatMessage(COMMANDS.MESSAGE_OK) + "\n"
+        );
+
+        console.log(`${socket.nickname} -> ${destino}: ${texto}`);
+        break;
+      }
+
+      case COMMANDS.LOGOUT: {
+        if (socket.nickname) {
+          console.log(`${socket.nickname} saiu do chat.`);
+
+          clientes.delete(socket.nickname);
+
+          socket.write(
+            formatMessage(COMMANDS.LOGOUT_OK) + "\n"
+          );
+
+          socket.end();
+        }
+        break;
+      }
+
+      default:
+        socket.write(
+          formatMessage(COMMANDS.ERROR, "Comando desconhecido") + "\n"
+        );
     }
-
-    case "LIST": {
-      const usuarios = [...clientes.keys()];
-      socket.write(`LIST;${usuarios.join(",")}\n`);
-      break;
-    }
-
-    case "MESSAGE": {
-
-      const destino = partes[1];
-      const texto = partes.slice(2).join(";");
-
-      if (!socket.nickname) {
-        socket.write("ERRO;Faça LOGIN primeiro.\n");
-        return;
-      }
-
-      const socketDestino = clientes.get(destino);
-
-      if (!socketDestino) {
-        socket.write("ERRO;Usuário não encontrado.\n");
-        return;
-      }
-
-      socketDestino.write(`MESSAGE;${socket.nickname};${texto}\n`);
-
-      socket.write("MESSAGE_OK\n");
-
-      console.log(`${socket.nickname} -> ${destino}: ${texto}`);
-
-      break;
-    }
-	
-	case "LOGOUT": {
-	  if (socket.nickname) {
-	    console.log(`${socket.nickname} saiu do chat.`);
-		  clientes.delete(socket.nickname);
-		  socket.write("LOGOUT_OK\n");
-		  socket.end();
-		}
-	  break;
-	}
-
-    default:
-      socket.write("ERRO;Comando desconhecido.\n");
-  }
-});
+  });
 
   // Cliente desconectou
   socket.on("end", () => {

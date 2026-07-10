@@ -2,11 +2,18 @@
 
 // 1. Dicionário de comandos permitidos no protocolo
 const COMMANDS = {
-  LOGIN: "LOGIN", // Formato: LOGIN;nickname
-  LIST: "LIST", // Formato: LIST
-  MESSAGE: "MESSAGE", // Formato: MESSAGE;destino;texto
-  LOGOUT: "LOGOUT", // Formato: LOGOUT
-  ERROR: "ERROR", // Formato: ERROR;mensagem (Uso do servidor para avisar falhas)
+  LOGIN: "LOGIN",
+  LOGIN_OK: "LOGIN_OK",
+
+  LIST: "LIST",
+
+  MESSAGE: "MESSAGE",
+  MESSAGE_OK: "MESSAGE_OK",
+
+  LOGOUT: "LOGOUT",
+  LOGOUT_OK: "LOGOUT_OK",
+
+  ERROR: "ERROR",
 };
 
 /**
