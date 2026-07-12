@@ -2,17 +2,17 @@
 
 // 1. Dicionário de comandos permitidos no protocolo
 const COMMANDS = {
+  REGISTER: "REGISTER",
+  REGISTER_OK: "REGISTER_OK",
+
   LOGIN: "LOGIN",
   LOGIN_OK: "LOGIN_OK",
 
   LIST: "LIST",
-
   MESSAGE: "MESSAGE",
   MESSAGE_OK: "MESSAGE_OK",
-
   LOGOUT: "LOGOUT",
   LOGOUT_OK: "LOGOUT_OK",
-
   ERROR: "ERROR",
 };
 
