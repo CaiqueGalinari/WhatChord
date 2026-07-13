@@ -81,6 +81,16 @@
         font-size: 16px;
       }
 
+      .login-box .btn-outline {
+        background-color: transparent;
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        margin-top: 10px;
+      }
+      .login-box .btn-outline:hover {
+        background-color: rgba(0, 168, 132, 0.1);
+      }
+
       .hidden {
         display: none !important;
       }
@@ -266,14 +276,34 @@
     <div id="loginOverlay" class="login-overlay">
       <div class="login-box">
         <h2>WhatChord</h2>
-        <p>Conectado ao servidor. Identifique-se.</p>
+        <p>Identifique-se ou crie sua conta.</p>
+
+        <div
+          id="statusMessage"
+          style="
+            color: #ef5350;
+            font-size: 13.5px;
+            margin-bottom: 12px;
+            min-height: 16px;
+            font-weight: 500;
+          "
+        ></div>
+
         <input
           type="text"
           id="nicknameInput"
           placeholder="Digite seu apelido..."
           autocomplete="off"
         />
+        <!-- Campo de senha -->
+        <input
+          type="password"
+          id="passwordInput"
+          placeholder="Digite sua senha..."
+        />
         <button id="btnLogin">Entrar</button>
+        <!-- Botão de cadastro -->
+        <button id="btnRegister" class="btn-outline">Cadastrar</button>
       </div>
     </div>
 

@@ -1,7 +1,9 @@
 // Captura elementos do DOM
 const loginOverlay = document.getElementById("loginOverlay");
 const nicknameInput = document.getElementById("nicknameInput");
+const passwordInput = document.getElementById("passwordInput");
 const btnLogin = document.getElementById("btnLogin");
+const btnRegister = document.getElementById("btnRegister");
 
 const welcomeScreen = document.getElementById("welcomeScreen");
 const chatHeader = document.getElementById("chatHeader");
@@ -19,6 +21,20 @@ let usuariosOnline = []; // Guarda a última lista do servidor
 
 const historicoMensagens = new Map();
 const contatosComMensagemNaoLida = new Set(); // Guarda quem te mandou mensagem
+
+// Adicione esta linha junto aos outros getElementById
+const statusMessage = document.getElementById("statusMessage");
+
+// Adicione esta função auxiliar para controlar o aviso
+function mostrarAviso(msg, sucesso = false) {
+  statusMessage.style.color = sucesso ? "var(--accent)" : "#ef5350";
+  statusMessage.innerText = msg;
+
+  // Apaga a mensagem da tela automaticamente após 4 segundos
+  setTimeout(() => {
+    if (statusMessage.innerText === msg) statusMessage.innerText = "";
+  }, 4000);
+}
 
 function salvarMensagem(contato, texto, remetente) {
   if (!historicoMensagens.has(contato)) {
@@ -89,15 +105,29 @@ function renderizarContatos() {
   });
 }
 
-// 1. Login
+// 1. Autenticação (Login e Registro)
 btnLogin.addEventListener("click", () => {
   const nick = nicknameInput.value.trim();
-  if (nick) {
+  const pwd = passwordInput.value.trim();
+  if (nick && pwd) {
     meuNickname = nick;
-    window.api.enviarParaServidor(`LOGIN;${nick}`);
+    window.api.enviarParaServidor(`LOGIN;${nick};${pwd}`);
+  } else {
+    mostrarAviso("Preencha o apelido e a senha para entrar!"); // Sem alert()
   }
 });
-nicknameInput.addEventListener("keypress", (e) => {
+
+btnRegister.addEventListener("click", () => {
+  const nick = nicknameInput.value.trim();
+  const pwd = passwordInput.value.trim();
+  if (nick && pwd) {
+    window.api.enviarParaServidor(`REGISTER;${nick};${pwd}`);
+  } else {
+    mostrarAviso("Preencha o apelido e a senha para se cadastrar!"); // Sem alert()
+  }
+});
+
+passwordInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") btnLogin.click();
 });
 
@@ -121,6 +151,10 @@ window.api.receberDoServidor((dados) => {
   const comando = partes[0];
 
   switch (comando) {
+    case "REGISTER_OK":
+      mostrarAviso("Conta criada com sucesso! Clique em 'Entrar'.", true);
+      break;
+
     case "LOGIN_OK":
       loginOverlay.classList.add("hidden");
       window.api.enviarParaServidor("LIST");
@@ -149,7 +183,21 @@ window.api.receberDoServidor((dados) => {
 
     case "ERROR":
     case "ERRO":
-      alert(`Falha: ${partes[1] || dados}`);
+      // Se a tela de login ainda estiver visível, mostra o erro nela
+      if (!loginOverlay.classList.contains("hidden")) {
+        mostrarAviso(`${partes[1] || dados}`);
+      } else {
+        // Se o erro ocorreu com o usuário já dentro do chat (ex: enviar mensagem para offline)
+        // injeta a notificação como um texto centralizado no próprio chat
+        const erroNoChat = document.createElement("div");
+        erroNoChat.style.alignSelf = "center";
+        erroNoChat.style.backgroundColor = "transparent";
+        erroNoChat.style.color = "#ef5350";
+        erroNoChat.style.boxShadow = "none";
+        erroNoChat.innerHTML = `<em>Sistema: ${partes[1] || dados}</em>`;
+        chat.appendChild(erroNoChat);
+        chat.scrollTop = chat.scrollHeight;
+      }
       break;
   }
 });
