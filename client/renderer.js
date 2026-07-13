@@ -135,7 +135,10 @@ passwordInput.addEventListener("keypress", (e) => {
 btnEnviar.addEventListener("click", () => {
   const texto = inputMensagem.value.trim();
   if (texto && contatoSelecionado) {
-    window.api.enviarParaServidor(`MESSAGE;${contatoSelecionado};${texto}`);
+    const textoCifrado = window.api.criptografar(texto);
+    window.api.enviarParaServidor(
+      `MESSAGE;${contatoSelecionado};${textoCifrado}`,
+    );
     salvarMensagem(contatoSelecionado, texto, "Você");
     renderizarChatAtivo();
     inputMensagem.value = "";
@@ -168,9 +171,10 @@ window.api.receberDoServidor((dados) => {
 
     case "MESSAGE":
       const remetente = partes[1];
-      const textoRecebido = partes.slice(2).join(";");
+      const textoRecebidoCifrado = partes.slice(2).join(";");
 
-      salvarMensagem(remetente, textoRecebido, remetente);
+      const textoDecifrado = window.api.descriptografar(textoRecebidoCifrado);
+      salvarMensagem(remetente, textoDecifrado, remetente);
 
       // Se estou no chat da pessoa, mostra a msg. Se não, avisa na bolinha verde.
       if (contatoSelecionado === remetente) {
