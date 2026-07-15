@@ -15,17 +15,17 @@ const inputMensagem = document.getElementById("mensagem");
 const btnEnviar = document.getElementById("btnEnviar");
 
 // Gerenciamento de Estado
-let meuNickname = "";
-let contatoSelecionado = null;
+let meuNickname = ""; // Armazena o nome do user logado
+let contatoSelecionado = null; // Fala quem ta no foco atual
 let usuariosOnline = []; // Guarda a última lista do servidor
 
-const historicoMensagens = new Map();
-const contatosComMensagemNaoLida = new Set(); // Guarda quem te mandou mensagem
+const historicoMensagens = new Map(); // Vincula o contato às mensagens trocadas por ele
+const contatosComMensagemNaoLida = new Set(); // Guarda quem te mandou mensagem e você não leu
 
-// Adicione esta linha junto aos outros getElementById
+// Captura a div para mostrar erros
 const statusMessage = document.getElementById("statusMessage");
 
-// Adicione esta função auxiliar para controlar o aviso
+// Padroniza o feedback visual de alertas
 function mostrarAviso(msg, sucesso = false) {
   statusMessage.style.color = sucesso ? "var(--accent)" : "#ef5350";
   statusMessage.innerText = msg;
@@ -36,13 +36,15 @@ function mostrarAviso(msg, sucesso = false) {
   }, 4000);
 }
 
+// Função para persistir conversa localmente
 function salvarMensagem(contato, texto, remetente) {
   if (!historicoMensagens.has(contato)) {
     historicoMensagens.set(contato, []);
   }
-  historicoMensagens.get(contato).push({ texto, remetente });
+  historicoMensagens.get(contato).push({ texto, remetente }); // tupla (texto; quem enviou)
 }
 
+// Renderiza a conversa atual na tela
 function renderizarChatAtivo() {
   chat.innerHTML = "";
   if (historicoMensagens.has(contatoSelecionado)) {
@@ -60,6 +62,7 @@ function renderizarChatAtivo() {
   chat.scrollTop = chat.scrollHeight;
 }
 
+// Desenha e atualiza a lista de contatos (usuarios ativos)
 function renderizarContatos() {
   chatList.innerHTML = "";
 
@@ -105,53 +108,61 @@ function renderizarContatos() {
   });
 }
 
-// 1. Autenticação (Login e Registro)
+// Login ao apertar botão de login
 btnLogin.addEventListener("click", () => {
   const nick = nicknameInput.value.trim();
   const pwd = passwordInput.value.trim();
   if (nick && pwd) {
+    // barra valores vazios
     meuNickname = nick;
     window.api.enviarParaServidor(`LOGIN;${nick};${pwd}`);
   } else {
-    mostrarAviso("Preencha o apelido e a senha para entrar!"); // Sem alert()
+    mostrarAviso("Preencha o apelido e a senha para entrar!");
   }
 });
 
+// Cadastro ao apertar o botao de cadastro
 btnRegister.addEventListener("click", () => {
   const nick = nicknameInput.value.trim();
   const pwd = passwordInput.value.trim();
   if (nick && pwd) {
-    window.api.enviarParaServidor(`REGISTER;${nick};${pwd}`);
+    window.api.enviarParaServidor(`REGISTER;${nick};${pwd}`); // Dispacha para o node e depois para o server a solicitação de cadastro
   } else {
-    mostrarAviso("Preencha o apelido e a senha para se cadastrar!"); // Sem alert()
+    mostrarAviso("Preencha o apelido e a senha para se cadastrar!");
   }
 });
 
+// Aperta automatico no login se der enter depois de digitar a senha
 passwordInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") btnLogin.click();
 });
 
-// 2. Envio de Mensagem
+// Envio de Mensagem ao apertar o botão de enviar
 btnEnviar.addEventListener("click", () => {
   const texto = inputMensagem.value.trim();
+  // Se o texto for válido e tiver contato selecionado...
   if (texto && contatoSelecionado) {
-    const textoCifrado = window.api.criptografar(texto);
+    const textoCifrado = window.api.criptografar(texto); // criptografa o texto
+    // Manda para o server dentro do protocolo (MESSAGE;CONTATO;MENSAGEM)
     window.api.enviarParaServidor(
       `MESSAGE;${contatoSelecionado};${textoCifrado}`,
     );
+    // Salva no histórico para exibir
     salvarMensagem(contatoSelecionado, texto, "Você");
-    renderizarChatAtivo();
-    inputMensagem.value = "";
+    renderizarChatAtivo(); // Atualiza a tela
+    inputMensagem.value = ""; // Limpa a barra de texto
   }
 });
+
+// Envia mensagem com enter também
 inputMensagem.addEventListener("keypress", (e) => {
   if (e.key === "Enter") btnEnviar.click();
 });
 
-// 3. Roteamento (Escuta o Servidor)
+// Roteamento (fica ouvindo o server)
 window.api.receberDoServidor((dados) => {
   const partes = dados.split(";");
-  const comando = partes[0];
+  const comando = partes[0]; // Pega o comando e faz switch case
 
   switch (comando) {
     case "REGISTER_OK":
@@ -161,14 +172,16 @@ window.api.receberDoServidor((dados) => {
     case "LOGIN_OK":
       loginOverlay.classList.add("hidden");
       window.api.enviarParaServidor("LIST");
-      setInterval(() => window.api.enviarParaServidor("LIST"), 5000);
+      setInterval(() => window.api.enviarParaServidor("LIST"), 5000); // fica solicitando a lista para o servidor
       break;
 
+    // Recebe a lista do servidor
     case "LIST":
       usuariosOnline = partes.slice(1);
       renderizarContatos();
       break;
 
+    // Recebe mensagem e descriptografa
     case "MESSAGE":
       const remetente = partes[1];
       const textoRecebidoCifrado = partes.slice(2).join(";");

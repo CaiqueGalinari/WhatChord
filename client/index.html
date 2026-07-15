@@ -1,10 +1,17 @@
+<!-- 90% da parte visual -->
 <!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <title>WhatChord</title>
+
+    <!-- ----------------------------
+            BLOCO DO CSS
+    --------------------------------- -->
     <style>
+      /* Variáveis globais */
       :root {
+        /* Cores de fundo, etc */
         --bg-app: #0a1014;
         --bg-panel: #111b21;
         --bg-hover: #202c33;
@@ -15,12 +22,15 @@
         --border: #222d34;
       }
 
+      /* Tira toda a formatação do HTML */
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
+
+      /* Base */
       body {
         background-color: var(--bg-app);
         color: var(--text-primary);
@@ -29,7 +39,9 @@
         overflow: hidden;
       }
 
-      /* Login */
+      /* -----------
+          LOGIN
+      ------------ */
       .login-overlay {
         position: fixed;
         top: 0;
@@ -173,7 +185,7 @@
         color: var(--text-secondary);
       }
 
-      /* NOVO: Bolinha de notificação */
+      /* Bolinha de notificação */
       .unread-indicator {
         width: 10px;
         height: 10px;
@@ -195,7 +207,7 @@
         position: relative;
       }
 
-      /* NOVO: Tela de boas-vindas */
+      /* Tela de boas-vindas */
       .welcome-screen {
         flex: 1;
         display: flex;
@@ -270,6 +282,9 @@
         cursor: pointer;
       }
     </style>
+    <!-- ----------------
+          FIM DO CSS
+    ----------------- -->
   </head>
   <body>
     <!-- OVERLAY DE LOGIN -->
@@ -278,17 +293,7 @@
         <h2>WhatChord</h2>
         <p>Identifique-se ou crie sua conta.</p>
 
-        <div
-          id="statusMessage"
-          style="
-            color: #ef5350;
-            font-size: 13.5px;
-            margin-bottom: 12px;
-            min-height: 16px;
-            font-weight: 500;
-          "
-        ></div>
-
+        <!-- Bloco para o js injetar mensagens de erro -->
         <div
           id="statusMessage"
           style="
@@ -306,22 +311,27 @@
           placeholder="Digite seu apelido..."
           autocomplete="off"
         />
+
         <!-- Campo de senha -->
         <input
           type="password"
           id="passwordInput"
           placeholder="Digite sua senha..."
         />
+
+        <!-- Botão de login -->
         <button id="btnLogin">Entrar</button>
         <!-- Botão de cadastro -->
         <button id="btnRegister" class="btn-outline">Cadastrar</button>
       </div>
     </div>
 
+    <!-- Ícones, imitando o whatsapp web -->
     <nav class="sidebar-icons">
       <div class="icon-placeholder">Msg</div>
     </nav>
 
+    <!-- Complemento à NAV anterior, vai listar os users -->
     <aside class="sidebar-chats">
       <div class="sidebar-header">WhatChord</div>
       <div class="search-bar">

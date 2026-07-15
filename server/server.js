@@ -1,23 +1,27 @@
-const net = require("net");
-const { COMMANDS, parseMessage, formatMessage } = require("../shared/protocol");
+// Responsável por mediar as conexões
+const net = require("net"); // importa o net para TCP
+const { COMMANDS, parseMessage, formatMessage } = require("../shared/protocol"); // importa o protocolo compartilhado e todo o resto
 
-const PORT = 3000;
+const PORT = 3000; // define a porta (precisa ser a mesma do client, se for testar outra)
 
-// "Banco de dados" de usuários cadastrados (Chave: nickname -> Valor: senha)
+// Banco de dados temporário de usuários cadastrados (Chave: nickname -> Valor: senha)
 const bancoDeUsuarios = new Map();
 
 // Guarda apenas os usuários com socket ativo no momento
 const clientes = new Map();
 
+// instancia o servidor, dá um socket diferente para cada cliente conectado
 const servidor = net.createServer((socket) => {
   console.log("Novo cliente conectado!");
 
+  // Começa a ouvir os clientes
   socket.on("data", (data) => {
-    const { command, args } = parseMessage(data.toString());
-    console.log("Recebido:", command, args);
+    const { command, args } = parseMessage(data.toString()); // converte byte para string legível
+    console.log("Recebido:", command, args); // imprime no log que recebeu certinho
 
+    // Para cada comando:
     switch (command) {
-      // 1. LÓGICA DE CADASTRO
+      // salva o usuário cadastrado, se vier os dados certinhos e se ele já não existir
       case COMMANDS.REGISTER: {
         const nickname = args[0];
         const senha = args[1];
@@ -50,7 +54,7 @@ const servidor = net.createServer((socket) => {
         break;
       }
 
-      // 2. LÓGICA DE AUTENTICAÇÃO
+      // Checa integridade dos dados e vê se ele existe
       case COMMANDS.LOGIN: {
         const nickname = args[0];
         const senha = args[1]; // Agora o protocolo exige a senha
@@ -63,7 +67,7 @@ const servidor = net.createServer((socket) => {
           return;
         }
 
-        // Validação de Arquitetura: Verifica se o usuário existe
+        // Validação de Arquitetura: Verifica se o usuário existe, etc
         if (!bancoDeUsuarios.has(nickname)) {
           socket.write(
             formatMessage(
@@ -97,13 +101,14 @@ const servidor = net.createServer((socket) => {
         break;
       }
 
-      // ... O resto continua igual
+      // Envia a lista de usuarios conectados para o cliente
       case COMMANDS.LIST: {
         const usuarios = [...clientes.keys()];
         socket.write(formatMessage(COMMANDS.LIST, ...usuarios) + "\n");
         break;
       }
 
+      // Envia a mensagem para o lugar certo
       case COMMANDS.MESSAGE: {
         const destino = args[0];
         const texto = args.slice(1).join(";");
@@ -115,7 +120,7 @@ const servidor = net.createServer((socket) => {
           return;
         }
 
-        const socketDestino = clientes.get(destino);
+        const socketDestino = clientes.get(destino); // Pega o socket do cliente de destino
 
         if (!socketDestino) {
           socket.write(
@@ -127,6 +132,7 @@ const servidor = net.createServer((socket) => {
           return;
         }
 
+        // Envia para o socket certo a mensagem
         socketDestino.write(
           formatMessage(COMMANDS.MESSAGE, socket.nickname, texto) + "\n",
         );
@@ -145,6 +151,7 @@ const servidor = net.createServer((socket) => {
         break;
       }
 
+      // Se não for nenhum dos acima...
       default:
         socket.write(
           formatMessage(COMMANDS.ERROR, "Comando desconhecido") + "\n",
