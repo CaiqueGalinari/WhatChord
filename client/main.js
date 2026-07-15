@@ -15,6 +15,7 @@ function criarJanela() {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true, // Segurança ativada
+      sandbox: false,
     },
   });
 
